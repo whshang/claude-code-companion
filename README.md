@@ -42,6 +42,21 @@ Claude Code 伴侣是一个为 Claude Code 提供的本地 API 代理工具。�
    - 还需要设置 API_TIMEOUT_MS=600000 ，这样才能在号池超时的时候，客户端自己不超时
    - 建议设置 CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 ，可以避免 claude code 往他们公司报东西
 
+## 从源码编译与可执行文件
+
+- 环境要求：安装 Go 1.23+ 与 Git（建议使用 Makefile 进行构建）。
+- 快速编译（当前系统）：在仓库根目录执行 `make build`，将生成可执行文件 `claude-code-companion`（Windows 为 `claude-code-companion.exe`）。
+- 运行程序：`./claude-code-companion -config config.yaml`，或使用 `make run`（首次运行会在当前目录生成示例配置）。
+- 交叉编译目标：
+  - macOS Apple Silicon：`make darwin-arm64`
+  - macOS Intel：`make darwin-amd64`
+  - Linux x64：`make linux-amd64`
+  - Linux ARM64：`make linux-arm64`
+  - Windows x64：`make windows-amd64`
+  - 一次性全部：`make all`
+- 版本信息与发布构建：构建时会自动注入形如 `YYYYMMDD-<short-hash>` 的版本号；如需标记发布版本，可执行 `RELEASE_BUILD=true make build`，生成的可执行文件会带有 `-release` 后缀版本标记。
+- 开发热重载（可选）：先安装 Air（`go install github.com/cosmtrek/air@latest`），然后执行 `make dev` 按 `.air.toml` 热重载。
+
 ## 一些文档
 
 [常见端点提供商的参数参考](https://ucn0s6hcz1w1.feishu.cn/sheets/RNPHswfIThqQ1itf1m4cb0mKnrc)

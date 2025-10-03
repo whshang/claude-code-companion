@@ -194,7 +194,7 @@ logging:
 
 #### 方式一：使用自动脚本（推荐）
 
-访问 http://localhost:8080/help，下载对应系统的脚本：
+访问 http://localhost:8080/help ，下载对应系统的脚本：
 
 - **Windows**: `ccc.bat`
 - **macOS**: `ccc.command`
@@ -241,32 +241,34 @@ claude interactive
 
 ### Codex 配置
 
-#### 方式一：环境变量
+#### 方式一：使用自动脚本（推荐）
 
-```bash
-# Linux/macOS
-export OPENAI_API_BASE="http://127.0.0.1:8080"
-export OPENAI_API_KEY="hello"
+访问 http://localhost:8080/help?client=codex ，下载对应系统的脚本。
 
-# Windows
-set OPENAI_API_BASE=http://127.0.0.1:8080
-set OPENAI_API_KEY=hello
+#### 方式二：手动配置文件
+
+编辑 `~/.codex/config.toml`：
+
+```toml
+model_provider = "cccc"
+model = "gpt-5"
+
+[model_providers.cccc]
+name = "cccc"
+base_url = "http://127.0.0.1:8080"
+wire_api = "responses"
+requires_openai_auth = true
+
+[projects."/path/to/your/project"]
+trust_level = "trusted"
 ```
 
-#### 方式二：Codex 配置文件
-
-编辑 `~/.codex/config.json`：
-
-```json
-{
-  "apiBase": "http://127.0.0.1:8080",
-  "apiKey": "hello"
-}
-```
-
-#### 一键生成配置
-
-访问 http://localhost:8080/help?client=codex 获取 Codex 专用配置脚本。
+**说明**：
+- `model_provider`: 使用自定义提供商名称（如 cccc）
+- `base_url`: 代理服务器地址
+- `wire_api`: 使用 responses API（Codex 原生格式）
+- `requires_openai_auth`: 启用认证（API Key 可以是任意值如 "hello"）
+- `projects`: 配置项目信任级别
 
 ---
 

@@ -4,6 +4,31 @@ All notable changes to Claude Code Companion will be documented in this file.
 
 ## [2.1.0] - 2025-10-03
 
+### 📖 Fixed - 文档错误修正
+
+**README.md 修正**：
+- ✅ 修复 `/help` 链接格式错误（缺少空格导致渲染问题）
+- ✅ 修正 Codex 配置文件路径：`~/.codex/config.json` → `~/.codex/config.toml`
+- ✅ 更新 Codex 配置格式为正确的 TOML 格式
+- ✅ 添加详细的配置字段说明（model_provider, wire_api, requires_openai_auth 等）
+- ✅ 移除环境变量配置方式（Codex 不支持）
+- ✅ 移除重复的"一键生成配置"章节
+
+**正确的 Codex 配置示例**：
+```toml
+model_provider = "cccc"
+model = "gpt-5"
+
+[model_providers.cccc]
+name = "cccc"
+base_url = "http://127.0.0.1:8080"
+wire_api = "responses"
+requires_openai_auth = true
+
+[projects."/path/to/your/project"]
+trust_level = "trusted"
+```
+
 ### 🧠 Added - 智能参数学习与自动重试系统
 
 **核心功能：零配置端点适配**

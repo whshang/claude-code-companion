@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"claude-code-companion/internal/config"
-	"claude-code-companion/internal/logger"
+	"claude-code-codex-companion/internal/config"
+	"claude-code-codex-companion/internal/logger"
 )
 
 // Rewriter 模型重写器
@@ -27,11 +27,11 @@ func NewRewriter(logger logger.Logger) *Rewriter {
 
 // RewriteRequest 重写请求中的模型名称
 func (r *Rewriter) RewriteRequest(req *http.Request, modelRewriteConfig *config.ModelRewriteConfig) (string, string, error) {
-	return r.RewriteRequestWithTags(req, modelRewriteConfig, nil)
+	return r.RewriteRequestWithTags(req, modelRewriteConfig, nil, "")
 }
 
 // RewriteRequestWithTags 重写请求中的模型名称，支持通用端点的隐式重写规则
-func (r *Rewriter) RewriteRequestWithTags(req *http.Request, modelRewriteConfig *config.ModelRewriteConfig, endpointTags []string) (string, string, error) {
+func (r *Rewriter) RewriteRequestWithTags(req *http.Request, modelRewriteConfig *config.ModelRewriteConfig, endpointTags []string, clientType string) (string, string, error) {
 	// 读取请求体
 	body, err := io.ReadAll(req.Body)
 	if err != nil {
@@ -70,18 +70,37 @@ func (r *Rewriter) RewriteRequestWithTags(req *http.Request, modelRewriteConfig 
 	if hasExplicitRules {
 		// 使用显式配置的规则
 		rules = modelRewriteConfig.Rules
-	} else if isGenericEndpoint && !strings.HasPrefix(originalModel, "claude") {
-		// 通用端点的隐式规则：非claude模型重写为claude-sonnet-4-20250514
-		rules = []config.ModelRewriteRule{
-			{
-				SourcePattern: "*",
-				TargetModel:   "claude-sonnet-4-20250514",
-			},
+	} else if isGenericEndpoint {
+		// 通用端点的隐式规则：根据客户端类型决定默认模型
+		var defaultModel string
+		var shouldApplyImplicit bool
+
+		if clientType == "claude-code" && !strings.HasPrefix(originalModel, "claude") {
+			// Claude Code 客户端：非 Claude 模型转为 Claude 默认模型
+			defaultModel = "claude-sonnet-4-20250514"
+			shouldApplyImplicit = true
+		} else if clientType == "codex" && !strings.HasPrefix(originalModel, "gpt") {
+			// Codex 客户端：非 GPT 模型转为 GPT 默认模型
+			defaultModel = "gpt-5"
+			shouldApplyImplicit = true
 		}
-		r.logger.Debug("Applying implicit model rewrite rule for generic endpoint", map[string]interface{}{
-			"original_model": originalModel,
-			"target_model":   "claude-sonnet-4-20250514",
-		})
+
+		if shouldApplyImplicit {
+			rules = []config.ModelRewriteRule{
+				{
+					SourcePattern: "*",
+					TargetModel:   defaultModel,
+				},
+			}
+			r.logger.Debug("Applying implicit model rewrite rule for generic endpoint", map[string]interface{}{
+				"client_type":    clientType,
+				"original_model": originalModel,
+				"target_model":   defaultModel,
+			})
+		} else {
+			// 不需要隐式重写
+			return "", "", nil
+		}
 	} else {
 		// 没有规则应用
 		return "", "", nil

@@ -11,7 +11,7 @@ import (
 	"net/url"
 	"time"
 
-	"claude-code-companion/internal/config"
+	"claude-code-codex-companion/internal/config"
 
 	"golang.org/x/net/proxy"
 )

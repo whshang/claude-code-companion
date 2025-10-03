@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"claude-code-companion/internal/utils"
+	"claude-code-codex-companion/internal/utils"
 
 	"github.com/sirupsen/logrus"
 )
@@ -59,6 +59,14 @@ type RequestLog struct {
 	
 	// 新增：端点失效原因摘要
 	EndpointBlacklistReason string `json:"endpoint_blacklist_reason,omitempty"`
+
+	// 新增：客户端类型和请求格式检测
+	ClientType         string  `json:"client_type,omitempty"`          // "claude-code" | "codex" | "unknown"
+	RequestFormat      string  `json:"request_format,omitempty"`       // "anthropic" | "openai" | "unknown"
+	TargetFormat       string  `json:"target_format,omitempty"`        // 目标端点的格式类型
+	FormatConverted    bool    `json:"format_converted"`               // 是否进行了格式转换
+	DetectionConfidence float64 `json:"detection_confidence,omitempty"` // 格式检测置信度 (0.0-1.0)
+	DetectedBy         string  `json:"detected_by,omitempty"`          // 检测方法: "path" | "body-structure" | "default"
 }
 
 // StorageInterface defines the interface for log storage backends

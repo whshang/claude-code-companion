@@ -3,7 +3,7 @@ package utils
 import (
 	"net/http"
 	
-	"claude-code-companion/internal/common/httpclient"
+	"claude-code-codex-companion/internal/common/httpclient"
 )
 
 // 兼容性函数，委托给新的httpclient包

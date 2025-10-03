@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"claude-code-companion/internal/config"
-	"claude-code-companion/internal/logger"
-	"claude-code-companion/internal/security"
-	"claude-code-companion/internal/i18n"
+	"claude-code-codex-companion/internal/config"
+	"claude-code-codex-companion/internal/logger"
+	"claude-code-codex-companion/internal/security"
+	"claude-code-codex-companion/internal/i18n"
 	"github.com/gin-gonic/gin"
 )
 

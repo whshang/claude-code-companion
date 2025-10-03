@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"claude-code-companion/internal/config"
+	"claude-code-codex-companion/internal/config"
 
 	"github.com/gin-gonic/gin"
 )

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"strings"
 	
-	"claude-code-companion/internal/logger"
+	"claude-code-codex-companion/internal/logger"
 )
 
 // SimpleJSONBuffer 简单的JSON缓冲器

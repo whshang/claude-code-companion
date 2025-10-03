@@ -7,10 +7,10 @@ import (
 	"io"
 	"net/http"
 
-	"claude-code-companion/internal/config"
-	"claude-code-companion/internal/conversion"
-	"claude-code-companion/internal/endpoint"
-	"claude-code-companion/internal/modelrewrite"
+	"claude-code-codex-companion/internal/config"
+	"claude-code-codex-companion/internal/conversion"
+	"claude-code-codex-companion/internal/endpoint"
+	"claude-code-codex-companion/internal/modelrewrite"
 )
 
 type Checker struct {
@@ -80,7 +80,8 @@ func (c *Checker) CheckEndpoint(ep *endpoint.Endpoint) error {
 	}
 
 	// 应用模型重写（如果配置了）
-	_, _, err = c.modelRewriter.RewriteRequestWithTags(tempReq, ep.ModelRewrite, ep.Tags)
+	// 健康检查时没有真实客户端类型，使用空字符串避免触发隐式重写
+	_, _, err = c.modelRewriter.RewriteRequestWithTags(tempReq, ep.ModelRewrite, ep.Tags, "")
 	if err != nil {
 		return fmt.Errorf("model rewrite failed during health check: %v", err)
 	}

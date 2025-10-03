@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"claude-code-companion/internal/endpoint"
-	"claude-code-companion/internal/utils"
+	"claude-code-codex-companion/internal/endpoint"
+	"claude-code-codex-companion/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,12 +17,28 @@ func (s *Server) handleProxy(c *gin.Context) {
 	startTime := c.MustGet("start_time").(time.Time)
 	path := c.Param("path")
 
+	// 如果 path 为空（直接路由如 /responses），使用实际请求路径
+	if path == "" {
+		path = c.Request.URL.Path
+	}
+
 	// 读取请求体
 	requestBody, err := s.readRequestBody(c)
 	if err != nil {
 		s.sendProxyError(c, http.StatusBadRequest, "request_body_error", "Failed to read request body", requestID)
 		return
 	}
+
+	// 检测请求格式和客户端类型
+	formatDetection := utils.DetectRequestFormat(path, requestBody)
+	c.Set("format_detection", formatDetection)
+	s.logger.Debug("Request format detected", map[string]interface{}{
+		"client_type":  formatDetection.ClientType,
+		"format":       formatDetection.Format,
+		"confidence":   formatDetection.Confidence,
+		"detected_by":  formatDetection.DetectedBy,
+		"path":         path,
+	})
 
 	// 提取原始模型名（在任何重写之前）
 	originalModel := s.extractModelFromRequest(requestBody)
@@ -43,8 +59,10 @@ func (s *Server) handleProxy(c *gin.Context) {
 	// count_tokens 请求将通过统一的端点尝试和回退逻辑处理
 	// OpenAI 端点不支持 count_tokens，但会自动回退到支持的端点
 
-	// 选择端点并处理请求
-	selectedEndpoint, err := s.selectEndpointForRequest(taggedRequest)
+	// 选择端点并处理请求（根据格式、客户端类型和标签选择兼容的端点）
+	requestFormat := string(formatDetection.Format)
+	clientType := string(formatDetection.ClientType)
+	selectedEndpoint, err := s.selectEndpointForRequest(taggedRequest, requestFormat, clientType)
 	if err != nil {
 		s.logger.Error("Failed to select endpoint", err)
 		// 获取tags用于日志记录
@@ -57,6 +75,13 @@ func (s *Server) handleProxy(c *gin.Context) {
 		s.sendFailureResponse(c, requestID, startTime, requestBody, tags, 0, errorMsg, "no_available_endpoints")
 		return
 	}
+
+	s.logger.Debug("Endpoint selected based on format and client", map[string]interface{}{
+		"request_format": requestFormat,
+		"client_type":    clientType,
+		"endpoint_name":  selectedEndpoint.Name,
+		"endpoint_type":  selectedEndpoint.EndpointType,
+	})
 
 	// 尝试向选择的端点发送请求，失败时回退到其他端点
 	success, shouldRetry := s.tryProxyRequest(c, selectedEndpoint, requestBody, requestID, startTime, path, taggedRequest, 1)

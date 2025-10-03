@@ -49,6 +49,7 @@
                                     <tr>
                                         <th data-t="time">时间</th>
                                         <th data-t="request_id">请求ID</th>
+                                        <th data-t="client">客户端</th>
                                         <th data-t="session">会话</th>
                                         <th data-t="endpoint">端点</th>
                                         <th data-t="model">模型</th>
@@ -73,6 +74,28 @@
                                                     <i class="fas fa-copy"></i>
                                                 </button>
                                             </small>
+                                        </td>
+                                        <td class="client-type-cell">
+                                            {{if .ClientType}}
+                                                {{if eq .ClientType "claude-code"}}
+                                                    <span class="badge bg-primary" title="Claude Code ({{.RequestFormat}})">
+                                                        <i class="fas fa-robot"></i> Claude
+                                                    </span>
+                                                {{else if eq .ClientType "codex"}}
+                                                    <span class="badge bg-success" title="Codex ({{.RequestFormat}})">
+                                                        <i class="fas fa-code"></i> Codex
+                                                    </span>
+                                                {{else}}
+                                                    <span class="badge bg-secondary" title="{{.ClientType}}">
+                                                        <i class="fas fa-question"></i> {{.ClientType}}
+                                                    </span>
+                                                {{end}}
+                                                {{if .FormatConverted}}
+                                                    <i class="fas fa-exchange-alt text-warning" title="格式转换: {{.RequestFormat}} → {{.TargetFormat}}"></i>
+                                                {{end}}
+                                            {{else}}
+                                                <span class="text-muted">--</span>
+                                            {{end}}
                                         </td>
                                         <td class="session-id-cell">
                                             <span class="session-id-badge" data-session-id="{{.SessionID}}" title="{{if .SessionID}}{{.SessionID}}{{else}}--{{end}}">

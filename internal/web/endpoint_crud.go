@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"net/url"
 
-	"claude-code-companion/internal/config"
-	"claude-code-companion/internal/security"
-	"claude-code-companion/internal/i18n"
+	"claude-code-codex-companion/internal/config"
+	"claude-code-codex-companion/internal/security"
+	"claude-code-codex-companion/internal/i18n"
 
 	"github.com/gin-gonic/gin"
 )
@@ -152,7 +152,7 @@ func (s *AdminServer) handleCreateEndpoint(c *gin.Context) {
 	// 创建新端点配置
 	newEndpoint := createEndpointConfigFromRequest(
 		request.Name, request.URL, request.EndpointType, request.PathPrefix,
-		request.AuthType, request.AuthValue, 
+		request.AuthType, request.AuthValue,
 		request.Enabled, maxPriority+1, request.Tags, request.Proxy, request.OAuthConfig, request.HeaderOverrides, request.ParameterOverrides)
 	currentEndpoints = append(currentEndpoints, newEndpoint)
 
@@ -308,9 +308,10 @@ func (s *AdminServer) handleUpdateEndpoint(c *gin.Context) {
 				currentEndpoints[i].AuthType = request.AuthType
 			}
 			currentEndpoints[i].Enabled = request.Enabled
-			
+
 			// 更新tags字段
 			currentEndpoints[i].Tags = request.Tags
+
 			
 			// 更新代理配置
 			currentEndpoints[i].Proxy = request.Proxy

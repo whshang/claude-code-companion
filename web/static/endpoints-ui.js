@@ -101,6 +101,7 @@ function rebuildTable(endpoints) {
         } else {
             tagsDisplay = `<span class="text-muted">${T('general', '通用')}</span>`;
         }
+
         
         row.innerHTML = `
             <td class="drag-handle text-center">
@@ -202,10 +203,10 @@ function updateEndpointEnabledBadge(endpointName, enabled) {
         // If not found, search in general endpoint list
         row = document.querySelector(`#general-endpoint-list tr[data-endpoint-name="${endpointName}"]`);
     }
-    
+
     if (row) {
-        const enabledCell = row.children[10]; // The "启用" column is at index 10
-        const enabledBadge = enabled 
+        const enabledCell = row.children[9]; // The "启用" column is now at index 9 (was 10)
+        const enabledBadge = enabled
             ? '<span class="badge bg-success"><i class="fas fa-toggle-on"></i> ' + T('enabled', '已启用') + '</span>'
             : '<span class="badge bg-secondary"><i class="fas fa-toggle-off"></i> ' + T('disabled', '已禁用') + '</span>';
         enabledCell.innerHTML = enabledBadge;
@@ -219,9 +220,9 @@ function updateEndpointStatusBadge(endpointName, enabled, status) {
         // If not found, search in general endpoint list
         row = document.querySelector(`#general-endpoint-list tr[data-endpoint-name="${endpointName}"]`);
     }
-    
+
     if (row) {
-        const statusCell = row.children[9]; // The "状态" column is at index 9
+        const statusCell = row.children[8]; // The "状态" column is now at index 8 (was 9)
         let statusBadge = '';
         if (!enabled) {
             // 如果端点被禁用，显示灰色的"禁用"状态

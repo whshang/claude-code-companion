@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"claude-code-companion/internal/logger"
+	"claude-code-codex-companion/internal/logger"
 )
 
 // 辅助函数

@@ -3,23 +3,34 @@
 function generateLogAttemptHtml(log, attemptNum) {
     const isSuccess = log.status_code >= 200 && log.status_code < 300;
     const badgeClass = isSuccess ? 'bg-success' : 'bg-danger';
-    
+
     // Check if there are data transformations
     const requestChanges = hasRequestChanges(log);
     const responseChanges = hasResponseChanges(log);
-    
+
     // Use actual attempt number from log if available
     const displayAttemptNum = log.attempt_number || attemptNum;
-    
+
+    // Build client type badge
+    let clientBadge = '';
+    if (log.client_type === 'claude-code') {
+        clientBadge = '<span class="badge bg-primary" title="Claude Code"><i class="fas fa-robot"></i> Claude</span>';
+    } else if (log.client_type === 'codex') {
+        clientBadge = '<span class="badge bg-success" title="Codex"><i class="fas fa-code"></i> Codex</span>';
+    } else if (log.client_type) {
+        clientBadge = `<span class="badge bg-secondary">${escapeHtml(log.client_type)}</span>`;
+    }
+
     return `
         <div class="card mb-3">
             <div class="card-header">
                 <h6 class="mb-0">
-                    ${displayAttemptNum > 1 ? `${T('retry_number', '重试')} #${displayAttemptNum - 1}` : `${T('first_attempt', '首次尝试')}`}: ${escapeHtml(log.endpoint)} 
+                    ${displayAttemptNum > 1 ? `${T('retry_number', '重试')} #${displayAttemptNum - 1}` : `${T('first_attempt', '首次尝试')}`}: ${escapeHtml(log.endpoint)}
                     <span class="badge ${badgeClass}">${log.status_code}</span>
                     <span class="badge bg-secondary">${log.duration_ms}ms</span>
-                    ${log.model ? 
-                        (log.model_rewrite_applied ? 
+                    ${clientBadge}
+                    ${log.model ?
+                        (log.model_rewrite_applied ?
                             `<span class="badge bg-success model-rewritten" title="→ ${escapeHtml(log.rewritten_model)}">${escapeHtml(log.model)}</span>` :
                             `<span class="badge bg-primary">${escapeHtml(log.model)}</span>`
                         ) : ''
@@ -64,24 +75,35 @@ function generateLogAttemptHtml(log, attemptNum) {
 function generateLogAttemptContentHtml(log, attemptNum) {
     const isSuccess = log.status_code >= 200 && log.status_code < 300;
     const badgeClass = isSuccess ? 'bg-success' : 'bg-danger';
-    
+
     // Check if there are data transformations
     const requestChanges = hasRequestChanges(log);
     const responseChanges = hasResponseChanges(log);
-    
+
     // Use actual attempt number from log if available
     const displayAttemptNum = log.attempt_number || attemptNum;
-    
+
+    // Build client type badge
+    let clientBadge = '';
+    if (log.client_type === 'claude-code') {
+        clientBadge = '<span class="badge bg-primary" title="Claude Code"><i class="fas fa-robot"></i> Claude</span>';
+    } else if (log.client_type === 'codex') {
+        clientBadge = '<span class="badge bg-success" title="Codex"><i class="fas fa-code"></i> Codex</span>';
+    } else if (log.client_type) {
+        clientBadge = `<span class="badge bg-secondary">${escapeHtml(log.client_type)}</span>`;
+    }
+
     return `
         ${log.error ? `<div class="alert alert-danger mb-3"><strong>${T('error', '错误')}:</strong> ${escapeHtml(log.error)}</div>` : ''}
-        
+
         <div class="mb-3">
             <h6 class="mb-2">
-                ${displayAttemptNum > 1 ? T('retry_attempt', '重试 #{0}').replace('{0}', displayAttemptNum - 1) : T('first_attempt', '首次尝试')}: ${escapeHtml(log.endpoint)} 
+                ${displayAttemptNum > 1 ? T('retry_attempt', '重试 #{0}').replace('{0}', displayAttemptNum - 1) : T('first_attempt', '首次尝试')}: ${escapeHtml(log.endpoint)}
                 <span class="badge ${badgeClass}">${log.status_code}</span>
                 <span class="badge bg-secondary">${log.duration_ms}ms</span>
-                ${log.model ? 
-                    (log.model_rewrite_applied ? 
+                ${clientBadge}
+                ${log.model ?
+                    (log.model_rewrite_applied ?
                         `<span class="badge bg-success model-rewritten" title="→ ${escapeHtml(log.rewritten_model)}">${escapeHtml(log.model)}</span>` :
                         `<span class="badge bg-primary">${escapeHtml(log.model)}</span>`
                     ) : ''

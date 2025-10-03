@@ -1,7 +1,7 @@
 package tagging
 
 import (
-	"claude-code-companion/internal/interfaces"
+	"claude-code-codex-companion/internal/interfaces"
 )
 
 // 重新导出接口以保持向后兼容

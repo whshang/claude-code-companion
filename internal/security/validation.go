@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 	"unicode/utf8"
-	"claude-code-companion/internal/i18n"
+	"claude-code-codex-companion/internal/i18n"
 )
 
 // SanitizeInput 净化用户输入，检查长度、恶意脚本等

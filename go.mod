@@ -1,4 +1,4 @@
-module claude-code-companion
+module claude-code-codex-companion
 
 go 1.23.0
 

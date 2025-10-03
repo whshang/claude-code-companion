@@ -13,24 +13,33 @@ func createOptimizedIndexes(db *gorm.DB) error {
 	indexes := []string{
 		// 复合索引优化（基于 GetLogs 方法的查询模式）
 		"CREATE INDEX IF NOT EXISTS idx_request_logs_timestamp_status_opt ON request_logs(timestamp DESC, status_code)",
-		
+
 		// 支持分页查询的覆盖索引
 		"CREATE INDEX IF NOT EXISTS idx_request_logs_pagination_opt ON request_logs(timestamp DESC, id)",
-		
+
 		// 端点特定查询优化
 		"CREATE INDEX IF NOT EXISTS idx_request_logs_endpoint_time_opt ON request_logs(endpoint, timestamp DESC)",
-		
+
 		// 请求ID查询优化（GetAllLogsByRequestID方法）
 		"CREATE INDEX IF NOT EXISTS idx_request_logs_request_id_time ON request_logs(request_id, timestamp ASC)",
-		
+
 		// 基于模型的查询优化
 		"CREATE INDEX IF NOT EXISTS idx_request_logs_model_time ON request_logs(model, timestamp DESC)",
-		
+
 		// 失败日志查询优化
 		"CREATE INDEX IF NOT EXISTS idx_request_logs_status_code_time ON request_logs(status_code, timestamp DESC)",
-		
+
 		// 错误字段索引
 		"CREATE INDEX IF NOT EXISTS idx_request_logs_error_time ON request_logs(timestamp DESC) WHERE error != ''",
+
+		// 新增：客户端类型和格式转换查询优化
+		"CREATE INDEX IF NOT EXISTS idx_client_type ON request_logs(client_type)",
+		"CREATE INDEX IF NOT EXISTS idx_request_format ON request_logs(request_format)",
+		"CREATE INDEX IF NOT EXISTS idx_format_converted ON request_logs(format_converted)",
+
+		// 新增：组合索引优化客户端分析查询
+		"CREATE INDEX IF NOT EXISTS idx_request_logs_client_time ON request_logs(client_type, timestamp DESC)",
+		"CREATE INDEX IF NOT EXISTS idx_request_logs_format_time ON request_logs(request_format, format_converted, timestamp DESC)",
 	}
 	
 	for _, sql := range indexes {
@@ -72,6 +81,12 @@ func validateTableCompatibility(db *gorm.DB) error {
 		"blacklist_causing_request_ids": "blacklist_causing_request_ids TEXT DEFAULT '[]'",
 		"endpoint_blacklisted_at": "endpoint_blacklisted_at DATETIME",
 		"endpoint_blacklist_reason": "endpoint_blacklist_reason TEXT DEFAULT ''",
+		"client_type": "client_type VARCHAR(50) DEFAULT ''",
+		"request_format": "request_format VARCHAR(50) DEFAULT ''",
+		"target_format": "target_format VARCHAR(50) DEFAULT ''",
+		"format_converted": "format_converted BOOLEAN DEFAULT 0",
+		"detection_confidence": "detection_confidence REAL DEFAULT 0",
+		"detected_by": "detected_by VARCHAR(50) DEFAULT ''",
 	}
 	
 	for column, definition := range optionalColumns {

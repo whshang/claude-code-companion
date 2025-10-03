@@ -10,7 +10,7 @@ function showAddEndpointModal() {
     document.getElementById('endpoint-enabled').checked = true;
     document.getElementById('endpoint-type').value = 'anthropic'; // Default to Anthropic
     document.getElementById('endpoint-tags').value = ''; // Clear tags field
-    
+
     // Set endpoint type and switch path prefix display
     onEndpointTypeChange();
     
@@ -77,7 +77,9 @@ function showEditEndpointModal(endpointName) {
     // Set tags field
     const tagsValue = endpoint.tags && endpoint.tags.length > 0 ? endpoint.tags.join(', ') : '';
     document.getElementById('endpoint-tags').value = tagsValue;
-    
+
+    // 移除客户端选择字段 - 现在自动检测
+
     // Set auth value or OAuth config based on auth type
     if (endpoint.auth_type === 'oauth' && endpoint.oauth_config) {
         // Load OAuth configuration
@@ -206,6 +208,7 @@ function saveEndpoint() {
         auth_value: authValue,
         enabled: document.getElementById('endpoint-enabled').checked,
         tags: tags,
+        // 移除 supported_clients - 现在自动检测
         max_tokens_field_name: document.getElementById('max-tokens-field-name').value || '', // New: max tokens field name
         proxy: collectProxyData(), // New: collect proxy configuration
         header_overrides: collectHeaderOverrideData(), // New: collect header override configuration

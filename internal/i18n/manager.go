@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"claude-code-companion/internal/webres"
+	"claude-code-codex-companion/internal/webres"
 )
 
 // TranslationCache implements caching for processed content

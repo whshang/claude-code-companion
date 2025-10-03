@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"strings"
 
-	"claude-code-companion/internal/endpoint"
-	"claude-code-companion/internal/tagging"
-	"claude-code-companion/internal/utils"
+	"claude-code-codex-companion/internal/endpoint"
+	"claude-code-codex-companion/internal/tagging"
+	"claude-code-codex-companion/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -55,19 +55,21 @@ func (s *Server) processRequestTags(req *http.Request) *tagging.TaggedRequest {
 	return taggedRequest
 }
 
-// selectEndpointForRequest selects the appropriate endpoint based on tags
-func (s *Server) selectEndpointForRequest(taggedRequest *tagging.TaggedRequest) (*endpoint.Endpoint, error) {
+// selectEndpointForRequest selects the appropriate endpoint based on tags and request format
+func (s *Server) selectEndpointForRequest(taggedRequest *tagging.TaggedRequest, requestFormat string, clientType string) (*endpoint.Endpoint, error) {
 	if taggedRequest != nil && len(taggedRequest.Tags) > 0 {
-		// 使用tag匹配选择endpoint
-		selectedEndpoint, err := s.endpointManager.GetEndpointWithTags(taggedRequest.Tags)
-		s.logger.Debug(fmt.Sprintf("Request tagged with: %v, selected endpoint: %s", 
-			taggedRequest.Tags, 
+		// 使用tag和格式匹配选择endpoint
+		selectedEndpoint, err := s.endpointManager.GetEndpointWithTagsAndFormat(taggedRequest.Tags, requestFormat)
+		s.logger.Debug(fmt.Sprintf("Request tagged with: %v, format: %s, client: %s, selected endpoint: %s",
+			taggedRequest.Tags,
+			requestFormat,
+			clientType,
 			func() string { if selectedEndpoint != nil { return selectedEndpoint.Name } else { return "none" } }()))
 		return selectedEndpoint, err
 	} else {
-		// 使用原有逻辑选择endpoint
-		selectedEndpoint, err := s.endpointManager.GetEndpoint()
-		s.logger.Debug("Request has no tags, using default endpoint selection")
+		// 使用格式匹配选择endpoint
+		selectedEndpoint, err := s.endpointManager.GetEndpointWithFormat(requestFormat)
+		s.logger.Debug(fmt.Sprintf("Request has no tags, format: %s, client: %s, using format-based endpoint selection", requestFormat, clientType))
 		return selectedEndpoint, err
 	}
 }

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"unicode"
 
-	"claude-code-companion/internal/config"
-	"claude-code-companion/internal/logger"
+	"claude-code-codex-companion/internal/config"
+	"claude-code-codex-companion/internal/logger"
 )
 
 // PythonJSONAccumulator manages state across multiple SSE fragments

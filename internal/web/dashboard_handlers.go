@@ -1,7 +1,7 @@
 package web
 
 import (
-	"claude-code-companion/internal/endpoint"
+	"claude-code-codex-companion/internal/endpoint"
 
 	"github.com/gin-gonic/gin"
 )

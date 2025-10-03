@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"claude-code-companion/internal/config"
-	"claude-code-companion/internal/statistics"
+	"claude-code-codex-companion/internal/config"
+	"claude-code-codex-companion/internal/statistics"
 )
 
 type HealthChecker interface {
@@ -71,6 +71,27 @@ func (m *Manager) GetEndpoint() (*Endpoint, error) {
 // GetEndpointWithTags 根据tags选择endpoint
 func (m *Manager) GetEndpointWithTags(tags []string) (*Endpoint, error) {
 	return m.selector.SelectEndpointWithTags(tags)
+}
+
+// GetEndpointWithFormat 根据请求格式选择兼容的端点
+// requestFormat: "anthropic" | "openai" | "unknown"
+func (m *Manager) GetEndpointWithFormat(requestFormat string) (*Endpoint, error) {
+	return m.selector.SelectEndpointWithFormat(requestFormat)
+}
+
+// GetEndpointWithFormatAndClient 根据请求格式和客户端类型选择兼容的端点
+func (m *Manager) GetEndpointWithFormatAndClient(requestFormat string, clientType string) (*Endpoint, error) {
+	return m.selector.SelectEndpointWithFormatAndClient(requestFormat, clientType)
+}
+
+// GetEndpointWithTagsAndFormat 根据tags和格式选择端点
+func (m *Manager) GetEndpointWithTagsAndFormat(tags []string, requestFormat string) (*Endpoint, error) {
+	return m.selector.SelectEndpointWithTagsAndFormat(tags, requestFormat)
+}
+
+// GetEndpointWithTagsFormatAndClient 根据tags、格式和客户端类型选择端点
+func (m *Manager) GetEndpointWithTagsFormatAndClient(tags []string, requestFormat string, clientType string) (*Endpoint, error) {
+	return m.selector.SelectEndpointWithTagsFormatAndClient(tags, requestFormat, clientType)
 }
 
 func (m *Manager) GetAllEndpoints() []*Endpoint {

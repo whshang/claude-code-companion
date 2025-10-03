@@ -17,10 +17,10 @@
             <div class="row align-items-center">
                 <div class="col-md-8">
                     <h1 class="display-4 mb-3">
-                        <i class="fas fa-robot"></i> <span data-t="claude_proxy_help">Claude Code 伴侣帮助</span>
+                        <i class="fas fa-robot"></i> <span data-t="cccc_help">CCCC - 配置助手</span>
                     </h1>
                     <p class="lead mb-4">
-                        <span data-t="setup_guide_claude_code_proxy">使用 Claude Code 伴侣设置 Claude Code 的完整指南</span>
+                        <span data-t="setup_guide_cccc">Claude Code and Codex Companion - 为两大 AI 编程助手提供统一的 API 转发</span>
                     </p>
                     <div class="d-flex gap-3">
                         <a href="/admin/" class="btn btn-light btn-lg">
@@ -39,12 +39,48 @@
     </div>
 
     <div class="container">
+        <!-- Client Selection -->
+        <section id="client-selection" class="mb-5">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="h4 mb-0">
+                        <i class="fas fa-terminal text-primary"></i> 
+                        <span data-t="select_client">选择你的客户端</span>
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-primary client-card" onclick="selectClient('claude-code')">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-code fa-3x text-primary mb-3"></i>
+                                    <h4>Claude Code</h4>
+                                    <p class="text-muted">Anthropic 官方 AI 编程助手</p>
+                                    <button class="btn btn-primary">配置 Claude Code</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-success client-card" onclick="selectClient('codex')">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-terminal fa-3x text-success mb-3"></i>
+                                    <h4>Codex</h4>
+                                    <p class="text-muted">OpenAI Codex CLI 工具</p>
+                                    <button class="btn btn-success">配置 Codex</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
         <!-- Prerequisites Section -->
         <section id="prerequisites" class="mb-5">
             <div class="alert alert-info">
                 <i class="fas fa-info-circle"></i>
                 <strong><span data-t="prerequisite_notice">前置要求</span>：</strong>
-                <span data-t="prerequisite_description">请先保证系统上已经安装了官方版的 Claude Code</span>
+                <span data-t="prerequisite_description">请先保证系统上已经安装了 <span id="selected-client-name">Claude Code 或 Codex</span></span>
             </div>
         </section>
 
@@ -61,6 +97,36 @@
                     <p class="text-muted mb-4">
                         <span data-t="generate_script_description">生成启动脚本来使用此代理服务器。脚本会自动设置必要的环境变量并启动 Claude Code。</span>
                     </p>
+
+                    <!-- Script Type Selector -->
+                    <div class="mb-4">
+                        <h5 class="mb-3"><i class="fas fa-file-code"></i> 选择脚本类型</h5>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="scriptType" id="scriptSingle" autocomplete="off" checked>
+                            <label class="btn btn-outline-primary" for="scriptSingle">
+                                <i class="fas fa-user"></i> 单独配置
+                            </label>
+                            <input type="radio" class="btn-check" name="scriptType" id="scriptBoth" autocomplete="off">
+                            <label class="btn btn-outline-success" for="scriptBoth">
+                                <i class="fas fa-users"></i> 一键配置双客户端
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Client Type Selector (Only for Single Configuration) -->
+                    <div id="clientSelectorSection" class="mb-3">
+                        <h6 class="mb-2"><i class="fas fa-robot"></i> 选择客户端</h6>
+                        <div class="btn-group" role="group" id="clientTypeSelector">
+                            <input type="radio" class="btn-check" name="clientType" id="clientClaudeCode" autocomplete="off" checked onchange="switchClient('claude-code')">
+                            <label class="btn btn-outline-primary" for="clientClaudeCode">
+                                <i class="fas fa-code"></i> Claude Code
+                            </label>
+                            <input type="radio" class="btn-check" name="clientType" id="clientCodex" autocomplete="off" onchange="switchClient('codex')">
+                            <label class="btn btn-outline-success" for="clientCodex">
+                                <i class="fas fa-terminal"></i> Codex
+                            </label>
+                        </div>
+                    </div>
 
                     <!-- Script Tabs -->
                     <ul class="nav nav-tabs mb-4" id="scriptTabs" role="tablist">
@@ -89,16 +155,17 @@
                         <!-- Windows Script -->
                         <div class="tab-pane fade show active" id="windows-script" role="tabpanel" aria-labelledby="windows-script-tab">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h5><span data-t="windows_script">Windows 脚本</span> (ccc.bat)</h5>
-                                <button class="btn btn-success" onclick="downloadScript('windows')">
+                                <h5><span data-t="windows_script">Windows 脚本</span> <span id="windows-filename" class="text-muted">(cccc-claude.bat)</span></h5>
+                                <button class="btn btn-success" onclick="downloadScriptByType('windows')">
                                     <i class="fas fa-download"></i> <span data-t="download_script">下载脚本</span>
                                 </button>
                             </div>
-                            
+
                             <div class="alert alert-info mb-3">
                                 <i class="fas fa-info-circle"></i>
                                 <strong><span data-t="enhanced_script_notice">增强脚本说明</span>：</strong>
-                                <span data-t="enhanced_script_description">此脚本会自动检查并修改 Claude Code 设置文件以确保代理配置生效。如果设置文件存在冲突配置，会自动备份原文件。</span>
+                                <span data-t="enhanced_script_description" id="script-description-claude-win">此脚本会自动检查并修改 Claude Code 设置文件（~/.claude/settings.json）以确保代理配置生效。如果设置文件存在冲突配置，会自动备份原文件。</span>
+                                <span data-t="enhanced_script_description_codex" id="script-description-codex-win" style="display: none;">此脚本会自动生成或修改 Codex 配置文件（~/.codex/config.toml 和 auth.json）。配置包括模型提供商、认证信息等，会自动备份已有配置。</span>
                             </div>
                             
                             <div class="position-relative">
@@ -128,16 +195,17 @@
                         <!-- macOS Script -->
                         <div class="tab-pane fade" id="macos-script" role="tabpanel" aria-labelledby="macos-script-tab">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h5><span data-t="macos_script">macOS 脚本</span> (ccc.command)</h5>
-                                <button class="btn btn-success" onclick="downloadScript('macos')">
+                                <h5><span data-t="macos_script">macOS 脚本</span> <span id="macos-filename" class="text-muted">(cccc-claude.command)</span></h5>
+                                <button class="btn btn-success" onclick="downloadScriptByType('macos')">
                                     <i class="fas fa-download"></i> <span data-t="download_script">下载脚本</span>
                                 </button>
                             </div>
-                            
+
                             <div class="alert alert-info mb-3">
                                 <i class="fas fa-info-circle"></i>
                                 <strong><span data-t="enhanced_script_notice">增强脚本说明</span>：</strong>
-                                <span data-t="enhanced_script_description">此脚本会自动检查并修改 Claude Code 设置文件以确保代理配置生效。如果设置文件存在冲突配置，会自动备份原文件。</span>
+                                <span data-t="enhanced_script_description" id="script-description-claude-mac">此脚本会自动检查并修改 Claude Code 设置文件（~/.claude/settings.json）以确保代理配置生效。如果设置文件存在冲突配置，会自动备份原文件。</span>
+                                <span data-t="enhanced_script_description_codex" id="script-description-codex-mac" style="display: none;">此脚本会自动生成或修改 Codex 配置文件（~/.codex/config.toml 和 auth.json）。配置包括模型提供商、认证信息等，会自动备份已有配置。</span>
                             </div>
                             
                             <div class="position-relative">
@@ -167,16 +235,17 @@
                         <!-- Linux Script -->
                         <div class="tab-pane fade" id="linux-script" role="tabpanel" aria-labelledby="linux-script-tab">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h5><span data-t="linux_script">Linux 脚本</span> (ccc.sh)</h5>
-                                <button class="btn btn-success" onclick="downloadScript('linux')">
+                                <h5><span data-t="linux_script">Linux 脚本</span> <span id="linux-filename" class="text-muted">(cccc-claude.sh)</span></h5>
+                                <button class="btn btn-success" onclick="downloadScriptByType('linux')">
                                     <i class="fas fa-download"></i> <span data-t="download_script">下载脚本</span>
                                 </button>
                             </div>
-                            
+
                             <div class="alert alert-info mb-3">
                                 <i class="fas fa-info-circle"></i>
                                 <strong><span data-t="enhanced_script_notice">增强脚本说明</span>：</strong>
-                                <span data-t="enhanced_script_description">此脚本会自动检查并修改 Claude Code 设置文件以确保代理配置生效。如果设置文件存在冲突配置，会自动备份原文件。</span>
+                                <span data-t="enhanced_script_description" id="script-description-claude-linux">此脚本会自动检查并修改 Claude Code 设置文件（~/.claude/settings.json）以确保代理配置生效。如果设置文件存在冲突配置，会自动备份原文件。</span>
+                                <span data-t="enhanced_script_description_codex" id="script-description-codex-linux" style="display: none;">此脚本会自动生成或修改 Codex 配置文件（~/.codex/config.toml 和 auth.json）。配置包括模型提供商、认证信息等，会自动备份已有配置。</span>
                             </div>
                             
                             <div class="position-relative">
@@ -246,19 +315,44 @@
                         <div class="col-md-6">
                             <h5><span data-t="enhanced_features">增强功能</span></h5>
                             <ul>
-                                <li><i class="fas fa-check-circle text-success"></i> <span data-t="auto_settings_modification">自动修改 settings.json 文件</span></li>
+                                <li><i class="fas fa-check-circle text-success"></i> <span data-t="auto_settings_modification">自动修改配置文件</span></li>
                                 <li><i class="fas fa-check-circle text-success"></i> <span data-t="automatic_backup">冲突时自动备份原始配置</span></li>
-                                <li><i class="fas fa-check-circle text-success"></i> <span data-t="fallback_support">失败时环境变量后备支持</span></li>
+                                <li><i class="fas fa-check-circle text-success"></i> <span data-t="fallback_support">配置失败时提示手动处理</span></li>
                                 <li><i class="fas fa-check-circle text-success"></i> <span data-t="preserve_custom_settings">保留用户自定义设置</span></li>
                             </ul>
-                            
-                            <h5 class="mt-4"><span data-t="environment_variables">环境变量说明</span></h5>
-                            <ul>
-                                <li><strong>ANTHROPIC_BASE_URL:</strong> <span data-t="proxy_server_url">代理服务器 URL</span></li>
-                                <li><strong>ANTHROPIC_AUTH_TOKEN:</strong> <span data-t="authentication_token">认证令牌</span></li>
-                                <li><strong>CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC:</strong> <span data-t="disable_non_essential_traffic">禁用非必要流量</span></li>
-                                <li><strong>API_TIMEOUT_MS:</strong> <span data-t="api_timeout_milliseconds">API 超时时间（毫秒）</span></li>
-                            </ul>
+
+                            <!-- Claude Code 配置说明 -->
+                            <div id="claude-config-info">
+                                <h5 class="mt-4"><span data-t="claude_config_files">Claude Code 配置文件</span></h5>
+                                <ul>
+                                    <li><strong>~/.claude/settings.json:</strong> 主配置文件（自动创建和修改）</li>
+                                </ul>
+                                <h6 class="mt-3">环境变量说明</h6>
+                                <ul>
+                                    <li><strong>ANTHROPIC_BASE_URL:</strong> <span data-t="proxy_server_url">代理服务器 URL</span></li>
+                                    <li><strong>ANTHROPIC_AUTH_TOKEN:</strong> <span data-t="authentication_token">认证令牌（固定为 "hello"）</span></li>
+                                    <li><strong>CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC:</strong> <span data-t="disable_non_essential_traffic">禁用非必要流量</span></li>
+                                    <li><strong>API_TIMEOUT_MS:</strong> <span data-t="api_timeout_milliseconds">API 超时时间（毫秒）</span></li>
+                                </ul>
+                            </div>
+
+                            <!-- Codex 配置说明 -->
+                            <div id="codex-config-info" style="display: none;">
+                                <h5 class="mt-4"><span data-t="codex_config_files">Codex 配置文件</span></h5>
+                                <ul>
+                                    <li><strong>~/.codex/config.toml:</strong> 主配置文件（TOML 格式）</li>
+                                    <li><strong>~/.codex/auth.json:</strong> 认证配置文件</li>
+                                </ul>
+                                <h6 class="mt-3">配置项说明</h6>
+                                <ul>
+                                    <li><strong>model_provider:</strong> 模型提供商（设为 "cccc"）</li>
+                                    <li><strong>model:</strong> 使用的模型（gpt-5）</li>
+                                    <li><strong>model_reasoning_effort:</strong> 推理强度（high）</li>
+                                    <li><strong>base_url:</strong> 代理服务器地址/v1</li>
+                                    <li><strong>wire_api:</strong> API 类型（responses）</li>
+                                    <li><strong>OPENAI_API_KEY:</strong> 认证密钥（固定为 "hello"）</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                     
@@ -301,7 +395,33 @@
                                     </h6>
                                     <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
                                         <div class="accordion-body">
-                                            <span data-t="faq_restore_settings_answer">在 ~/.claude/ 目录中找到 settings.json.backup-* 文件，将其重命名为 settings.json 即可恢复。</span>
+                                            <span data-t="faq_restore_settings_answer">在 ~/.claude/ 或 ~/.codex/ 目录中找到备份文件（如 settings.json.backup-* 或 config.toml.backup-*），将其重命名为原文件名即可恢复。</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item">
+                                    <h6 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                                            <span data-t="faq_codex_model">Codex 可以切换其他模型吗？</span>
+                                        </button>
+                                    </h6>
+                                    <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                        <div class="accordion-body">
+                                            <span data-t="faq_codex_model_answer">可以。在脚本生成后，您可以手动编辑 ~/.codex/config.toml 文件，修改 model 字段为其他支持的模型名称（如 gpt-5-codex）。使用命令 codex -m MODEL_NAME 也可以临时切换模型。</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item">
+                                    <h6 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                                            <span data-t="faq_config_difference">Claude Code 和 Codex 配置有什么区别？</span>
+                                        </button>
+                                    </h6>
+                                    <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                        <div class="accordion-body">
+                                            <span data-t="faq_config_difference_answer">Claude Code 使用 JSON 格式的 settings.json 文件配置环境变量；Codex 使用 TOML 格式的 config.toml 配置模型提供商，并需要单独的 auth.json 存储认证信息。脚本会自动处理这些差异。</span>
                                         </div>
                                     </div>
                                 </div>

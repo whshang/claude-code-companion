@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm/logger"
 	_ "modernc.org/sqlite"
 	
-	appconfig "claude-code-companion/internal/config"
+	appconfig "claude-code-codex-companion/internal/config"
 )
 
 // GORMStorage 基于GORM的日志存储实现

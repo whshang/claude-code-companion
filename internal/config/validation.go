@@ -360,10 +360,9 @@ func validateOpenAIEndpoints(endpoints []EndpointConfig) error {
 				return fmt.Errorf("endpoint[%d] '%s': OpenAI endpoints with auth_token require auth_value to be specified", i, endpoint.Name)
 			}
 			
-			// OpenAI 端点必须配置 path_prefix
-			if endpoint.PathPrefix == "" {
-				return fmt.Errorf("endpoint[%d] '%s': OpenAI endpoints require path_prefix to be specified (e.g., '/v1/chat/completions')", i, endpoint.Name)
-			}
+			// OpenAI 端点的 path_prefix 现在是可选的
+			// 如果为空，将直接使用请求路径（如 /responses, /chat/completions）
+			// 如果不为空，将作为前缀与请求路径组合（如 /v1 + /responses）
 		}
 		
 		// Anthropic 端点不应该配置 path_prefix，因为会被固定为 /v1/messages

@@ -3,7 +3,7 @@ package web
 import (
 	"fmt"
 
-	"claude-code-companion/internal/config"
+	"claude-code-codex-companion/internal/config"
 )
 
 // saveEndpointsToConfig 将端点配置保存到配置文件
@@ -21,7 +21,7 @@ func createEndpointConfigFromRequest(name, url, endpointType, pathPrefix, authTy
 	if endpointType == "" {
 		endpointType = "anthropic"
 	}
-	
+
 	return config.EndpointConfig{
 		Name:              name,
 		URL:               url,

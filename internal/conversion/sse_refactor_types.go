@@ -1,7 +1,7 @@
 package conversion
 
 import (
-	"claude-code-companion/internal/logger"
+	"claude-code-codex-companion/internal/logger"
 )
 
 // AggregatedMessage represents a complete message after aggregating all OpenAI SSE chunks

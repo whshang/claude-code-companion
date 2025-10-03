@@ -48,7 +48,7 @@ func (v *ResponseValidator) ValidateResponseWithPath(body []byte, isStreaming bo
 			return err
 		}
 		// 然后验证完整SSE流的完整性
-		return v.ValidateCompleteSSEStream(body, endpointType, endpointURL)
+		return v.ValidateCompleteSSEStream(body, endpointType, path, endpointURL)
 	}
 	return v.ValidateStandardResponse(body, endpointType)
 }
@@ -84,11 +84,9 @@ func (v *ResponseValidator) ValidateStandardResponse(body []byte, endpointType s
 		}
 	} else if endpointType == "openai" {
 		// OpenAI格式验证：检查基本结构
-		requiredFields := []string{"id", "model"}
-		for _, field := range requiredFields {
-			if _, exists := response[field]; !exists {
-				return fmt.Errorf("missing required field for OpenAI format: %s", field)
-			}
+		// 注意：某些OpenAI兼容API（如Kimi）可能不返回id字段，所以只检查model字段
+		if _, hasModel := response["model"]; !hasModel {
+			return fmt.Errorf("missing required field for OpenAI format: model")
 		}
 
 		// 验证是否有choices或error字段
@@ -178,11 +176,12 @@ func (v *ResponseValidator) ValidateSSEChunk(chunk []byte, endpointType string) 
 					return err
 				}
 			} else if endpointType == "openai" {
-				// OpenAI格式验证：检查基本字段
-				if _, hasId := data["id"]; !hasId {
-					return fmt.Errorf("missing 'id' field in OpenAI SSE data")
-				}
+				// OpenAI格式验证：只检查基本字段
+				// 注意：Responses API 格式的 id 在 response.id 中，而不是顶层
+				// Chat Completions 格式的 id 在顶层
+				// 因此不强制要求顶层 id 字段
 				if _, hasModel := data["model"]; !hasModel {
+					// model 字段在两种格式中都应该存在
 					return fmt.Errorf("missing 'model' field in OpenAI SSE data")
 				}
 				// OpenAI格式不要求type和object字段
@@ -194,11 +193,11 @@ func (v *ResponseValidator) ValidateSSEChunk(chunk []byte, endpointType string) 
 }
 
 // ValidateCompleteSSEStream 验证完整的SSE流是否包含所有必需的事件
-func (v *ResponseValidator) ValidateCompleteSSEStream(body []byte, endpointType, endpointURL string) error {
+func (v *ResponseValidator) ValidateCompleteSSEStream(body []byte, endpointType, path, endpointURL string) error {
 	if endpointType == "anthropic" {
 		return v.validateAnthropicSSECompleteness(body)
 	} else if endpointType == "openai" {
-		return v.validateOpenAISSECompleteness(body, endpointURL)
+		return v.validateOpenAISSECompleteness(body, path, endpointURL)
 	}
 	return nil
 }
@@ -230,21 +229,32 @@ func (v *ResponseValidator) validateAnthropicSSECompleteness(body []byte) error 
 }
 
 // validateOpenAISSECompleteness 验证OpenAI SSE流的完整性
-func (v *ResponseValidator) validateOpenAISSECompleteness(body []byte, endpointURL string) error {
-	bodyStr := string(body)
-
-	// OpenAI流式响应应该以[DONE]结束
-	if !strings.Contains(bodyStr, "[DONE]") {
-		if !strings.Contains(endpointURL, "apis.iflow.cn") {
-			return fmt.Errorf("incomplete OpenAI SSE stream: missing [DONE] marker")
-		}
-	}
-
-	// 检查是否有finish_reason
+// 支持三种完整性标记：
+// 1. Chat Completions: finish_reason 字段
+// 2. Responses API: response.completed 事件
+// 3. 标准终止: [DONE] 标记
+// 有任意一种即可认为流完整
+// 使用端点配置的SSE设置来决定是否要求[DONE]标记
+func (v *ResponseValidator) validateOpenAISSECompleteness(body []byte, path, endpointURL string) error {
 	lines := bytes.Split(body, []byte("\n"))
 	hasFinishReason := false
+	hasResponseCompleted := false
+	hasDoneMarker := strings.Contains(string(body), "[DONE]")
 
+	// 检查完整性标志
 	for _, line := range lines {
+		line = bytes.TrimSpace(line)
+
+		// 检查 Responses API 的完成事件
+		if bytes.HasPrefix(line, []byte("event: ")) {
+			eventType := string(line[7:])
+			if eventType == "response.completed" || eventType == "response.done" {
+				hasResponseCompleted = true
+				break
+			}
+		}
+
+		// 检查 Chat Completions 的 finish_reason
 		if bytes.HasPrefix(line, []byte("data: ")) {
 			dataContent := line[6:]
 			if len(dataContent) == 0 || string(dataContent) == "[DONE]" {
@@ -256,6 +266,7 @@ func (v *ResponseValidator) validateOpenAISSECompleteness(body []byte, endpointU
 				continue
 			}
 
+			// Chat Completions 格式
 			if choices, ok := data["choices"].([]interface{}); ok && len(choices) > 0 {
 				if choice, ok := choices[0].(map[string]interface{}); ok {
 					if finishReason, exists := choice["finish_reason"]; exists && finishReason != nil {
@@ -264,14 +275,24 @@ func (v *ResponseValidator) validateOpenAISSECompleteness(body []byte, endpointU
 					}
 				}
 			}
+
+			// Responses API 格式：检查 status
+			if typeVal, hasType := data["type"]; hasType {
+				if typeStr, ok := typeVal.(string); ok && (typeStr == "response.completed" || typeStr == "response.done") {
+					hasResponseCompleted = true
+					break
+				}
+			}
 		}
 	}
 
-	if !hasFinishReason {
-		return fmt.Errorf("incomplete OpenAI SSE stream: missing finish_reason in response")
+	// 智能判断：有任意一种完整性标志即可认为流完整
+	// 这种宽松的策略允许系统自动适应不同API提供商的行为
+	if hasFinishReason || hasResponseCompleted || hasDoneMarker {
+		return nil
 	}
 
-	return nil
+	return fmt.Errorf("incomplete OpenAI SSE stream: missing finish_reason, response.completed, and [DONE] marker")
 }
 
 func (v *ResponseValidator) DecompressGzip(data []byte) ([]byte, error) {

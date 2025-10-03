@@ -37,10 +37,10 @@
 #### 1.2 HTML纯文本翻译（新增）
 ```html
 <!-- 现有方式，需要额外标签 -->
-<span data-t="welcome_message">欢迎使用Claude Code伴侣</span>
+<span data-t="welcome_message">欢迎使用CCCC</span>
 
 <!-- 新增方式，支持纯文本 -->
-<!--T:welcome_message-->欢迎使用Claude Code伴侣<!--/T-->
+<!--T:welcome_message-->欢迎使用CCCC<!--/T-->
 ```
 
 #### 1.3 HTML属性翻译（增强）

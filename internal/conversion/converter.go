@@ -1,7 +1,7 @@
 package conversion
 
 import (
-	"claude-code-companion/internal/logger"
+	"claude-code-codex-companion/internal/logger"
 )
 
 // DefaultConverter 默认转换器实现

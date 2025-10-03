@@ -1,10 +1,10 @@
-# Claude Code Companion 设计文档
+# Claude Code Codex Companion 设计文档
 
-本文档包含 Claude Code Companion 项目的详细实现规范和技术细节。基础架构信息请参考 [CLAUDE.md](./CLAUDE.md)。
+本文档包含 Claude Code Codex Companion 项目的详细实现规范和技术细节。基础架构信息请参考 [CLAUDE.md](./CLAUDE.md)。
 
 ## 系统架构概览
 
-Claude Code Companion 是一个多协议 API 代理服务，支持：
+Claude Code Codex Companion 是一个多协议 API 代理服务，支持：
 
 - **多端点类型**：Anthropic API、OpenAI API 等
 - **格式转换**：OpenAI 格式请求自动转换为 Anthropic 格式  

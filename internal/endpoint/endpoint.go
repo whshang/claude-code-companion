@@ -7,12 +7,12 @@ import (
 	"sync"
 	"time"
 
-	"claude-code-companion/internal/common/httpclient"
-	"claude-code-companion/internal/config"
-	"claude-code-companion/internal/interfaces"
-	"claude-code-companion/internal/oauth"
-	"claude-code-companion/internal/statistics"
-	"claude-code-companion/internal/utils"
+	"claude-code-codex-companion/internal/common/httpclient"
+	"claude-code-codex-companion/internal/config"
+	"claude-code-codex-companion/internal/interfaces"
+	"claude-code-codex-companion/internal/oauth"
+	"claude-code-codex-companion/internal/statistics"
+	"claude-code-codex-companion/internal/utils"
 )
 
 type Status string
@@ -57,6 +57,7 @@ type Endpoint struct {
 	RateLimitReset      *int64                 `json:"rate_limit_reset,omitempty"`      // Anthropic-Ratelimit-Unified-Reset
 	RateLimitStatus     *string                `json:"rate_limit_status,omitempty"`     // Anthropic-Ratelimit-Unified-Status
 	EnhancedProtection  bool                   `json:"enhanced_protection,omitempty"`   // 官方帐号增强保护：allowed_warning时即禁用端点
+	SSEConfig         *config.SSEConfig       `json:"sse_config,omitempty"` // SSE行为配置
 	Status              Status                   `json:"status"`
 	LastCheck           time.Time                `json:"last_check"`
 	FailureCount        int                      `json:"failure_count"`
@@ -65,16 +66,28 @@ type Endpoint struct {
 	LastFailure         time.Time                `json:"last_failure"`
 	SuccessiveSuccesses int                      `json:"successive_successes"` // 连续成功次数
 	RequestHistory      *utils.CircularBuffer    `json:"-"` // 使用环形缓冲区，不导出到JSON
-	
+
 	// 新增：被拉黑的原因（内存中，不持久化）
 	BlacklistReason *BlacklistReason `json:"-"`
-	
+
 	// 新增：保护 BlacklistReason 的互斥锁
 	blacklistMutex sync.RWMutex
-	
+
 	// 新增：上次记录跳过健康检查日志的时间（用于减少日志频率）
 	lastSkipLogTime time.Time `json:"-"`
-	
+
+	// 新增：是否原生支持 Codex 格式（用于 /responses 路径的自动探测）
+	// nil = 未探测，true = 支持原生 Codex 格式，false = 需要转换为 OpenAI 格式
+	NativeCodexFormat *bool `json:"native_codex_format,omitempty"`
+
+	// 新增：自动学习到的不支持的参数列表（运行时学习，不持久化）
+	// 当API返回400错误时，自动检测并记录哪些参数不被支持
+	// 例如：["tools", "tool_choice"] 表示这个端点不支持函数调用
+	LearnedUnsupportedParams []string `json:"-"`
+
+	// 新增：保护 LearnedUnsupportedParams 的互斥锁
+	learnedParamsMutex sync.RWMutex
+
 	mutex               sync.RWMutex
 }
 
@@ -102,6 +115,7 @@ func NewEndpoint(cfg config.EndpointConfig) *Endpoint {
 		RateLimitReset:      cfg.RateLimitReset,      // 新增：从配置加载rate limit reset状态
 		RateLimitStatus:     cfg.RateLimitStatus,     // 新增：从配置加载rate limit status状态
 		EnhancedProtection:  cfg.EnhancedProtection,  // 新增：从配置加载官方帐号增强保护设置
+		SSEConfig:         cfg.SSEConfig,         // 新增：从配置加载SSE行为配置
 		Status:            StatusActive,
 		LastCheck:         time.Now(),
 		RequestHistory:    utils.NewCircularBuffer(100, 140*time.Second), // 100个记录，140秒窗口
@@ -219,9 +233,18 @@ func (e *Endpoint) GetFullURL(path string) string {
 	case "anthropic":
 		// Anthropic 端点需要添加 /v1 前缀，因为路由组已经消费了 /v1
 		return baseURL + "/v1" + path
-	case "openai":
-		// OpenAI 端点使用配置的路径前缀（不需要路径转换）
-		return baseURL + e.PathPrefix
+    case "openai":
+        // OpenAI 端点：PathPrefix 作为前缀 + 实际请求路径
+        // 注意：不在此处进行 /responses -> /chat/completions 的路径重写，
+        // 是否切换路径由上层代理逻辑根据是否执行了 Codex->OpenAI 转换来决定。
+        fullURL := ""
+        if e.PathPrefix == "" {
+            fullURL = baseURL + path
+        } else {
+            fullURL = baseURL + e.PathPrefix + path
+        }
+
+        return fullURL
 	default:
 		// 向后兼容：默认使用 anthropic 格式，需要添加 /v1 前缀
 		return baseURL + "/v1" + path
@@ -647,4 +670,55 @@ func (e *Endpoint) ShouldDisableOnAllowedWarning() bool {
 	}
 	
 	return true
+}
+
+// UpdateNativeCodexSupport 动态更新端点的Codex支持状态
+func (e *Endpoint) UpdateNativeCodexSupport(supported bool) {
+	e.mutex.Lock()
+	defer e.mutex.Unlock()
+
+	// 如果已经有明确的判断，不再更新
+	if e.NativeCodexFormat != nil {
+		return
+	}
+
+	// 设置端点的Codex支持状态
+	e.NativeCodexFormat = &supported
+}
+// LearnUnsupportedParam 记录一个不支持的参数
+func (e *Endpoint) LearnUnsupportedParam(param string) {
+	e.learnedParamsMutex.Lock()
+	defer e.learnedParamsMutex.Unlock()
+	
+	// 检查是否已经记录
+	for _, p := range e.LearnedUnsupportedParams {
+		if p == param {
+			return // 已存在
+		}
+	}
+	
+	e.LearnedUnsupportedParams = append(e.LearnedUnsupportedParams, param)
+}
+
+// IsParamUnsupported 检查参数是否已被学习为不支持
+func (e *Endpoint) IsParamUnsupported(param string) bool {
+	e.learnedParamsMutex.RLock()
+	defer e.learnedParamsMutex.RUnlock()
+	
+	for _, p := range e.LearnedUnsupportedParams {
+		if p == param {
+			return true
+		}
+	}
+	return false
+}
+
+// GetLearnedUnsupportedParams 获取所有学习到的不支持参数
+func (e *Endpoint) GetLearnedUnsupportedParams() []string {
+	e.learnedParamsMutex.RLock()
+	defer e.learnedParamsMutex.RUnlock()
+	
+	result := make([]string, len(e.LearnedUnsupportedParams))
+	copy(result, e.LearnedUnsupportedParams)
+	return result
 }

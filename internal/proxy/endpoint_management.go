@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"claude-code-companion/internal/endpoint"
-	"claude-code-companion/internal/tagging"
-	"claude-code-companion/internal/utils"
+	"claude-code-codex-companion/internal/endpoint"
+	"claude-code-codex-companion/internal/tagging"
+	"claude-code-codex-companion/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -352,19 +352,62 @@ func (s *Server) endpointContainsAllTags(endpointTags, requestTags []string) boo
 	if len(requestTags) == 0 {
 		return true // 无标签请求总是匹配
 	}
-	
+
 	// 将endpoint的标签转换为map以便快速查找
 	tagSet := make(map[string]bool)
 	for _, tag := range endpointTags {
 		tagSet[tag] = true
 	}
-	
+
 	// 检查是否包含所有请求的标签
 	for _, reqTag := range requestTags {
 		if !tagSet[reqTag] {
 			return false
 		}
 	}
+	return true
+}
+
+// filterEndpointsByFormat 根据请求格式过滤兼容的端点
+func (s *Server) filterEndpointsByFormat(allEndpoints []*endpoint.Endpoint, requestFormat string) []*endpoint.Endpoint {
+	if requestFormat == "" || requestFormat == "unknown" {
+		// 格式未知时返回所有端点（保持向后兼容）
+		return allEndpoints
+	}
+
+	filtered := make([]*endpoint.Endpoint, 0)
+	for _, ep := range allEndpoints {
+		if s.isEndpointCompatibleWithFormat(ep, requestFormat) {
+			filtered = append(filtered, ep)
+		}
+	}
+
+	return filtered
+}
+
+// isEndpointCompatibleWithFormat 判断端点是否与请求格式兼容
+func (s *Server) isEndpointCompatibleWithFormat(ep *endpoint.Endpoint, requestFormat string) bool {
+	if !ep.Enabled {
+		return false
+	}
+
+	// 格式兼容性规则：
+	// 1. OpenAI 请求 → 只能选择 OpenAI 端点（不支持 OpenAI → Anthropic 转换）
+	// 2. Anthropic 请求 → 优先 Anthropic 端点，也可以选择 OpenAI 端点（支持 Anthropic → OpenAI 转换）
+
+	if requestFormat == "openai" {
+		// OpenAI 请求只能发到 OpenAI 端点
+		return ep.EndpointType == "openai"
+	}
+
+	if requestFormat == "anthropic" {
+		// Anthropic 请求可以发到任何端点
+		// - 发到 Anthropic 端点：直接透传
+		// - 发到 OpenAI 端点：自动转换
+		return true
+	}
+
+	// 未知格式，保持向后兼容
 	return true
 }
 
@@ -377,8 +420,24 @@ func (s *Server) fallbackToOtherEndpoints(c *gin.Context, path string, requestBo
 	if !shouldSkip {
 		s.endpointManager.RecordRequest(failedEndpoint.ID, false, requestID)
 	}
-	
+
+	// 获取请求格式，用于过滤兼容的端点
+	var requestFormat string
+	if detection, exists := c.Get("format_detection"); exists {
+		if det, ok := detection.(*utils.FormatDetectionResult); ok {
+			requestFormat = string(det.Format)
+		}
+	}
+
 	allEndpoints := s.endpointManager.GetAllEndpoints()
+
+	// 根据请求格式过滤兼容的端点
+	compatibleEndpoints := s.filterEndpointsByFormat(allEndpoints, requestFormat)
+	if len(compatibleEndpoints) < len(allEndpoints) {
+		s.logger.Debug(fmt.Sprintf("Filtered endpoints by format: %s, %d/%d endpoints compatible",
+			requestFormat, len(compatibleEndpoints), len(allEndpoints)))
+	}
+
 	var requestTags []string
 	if taggedRequest != nil {
 		requestTags = taggedRequest.Tags
@@ -387,25 +446,26 @@ func (s *Server) fallbackToOtherEndpoints(c *gin.Context, path string, requestBo
 	totalAttempted := MaxEndpointRetries // 包括最初失败的endpoint的所有重试
 	
 	if len(requestTags) > 0 {
-		// 有标签请求：分两阶段尝试
-		s.logger.Debug(fmt.Sprintf("Tagged request failed on %s, trying fallback with tags: %v", failedEndpoint.Name, requestTags))
-		
-		// Phase 1：尝试有标签且匹配的端点
-		taggedEndpoints := s.filterAndSortEndpoints(allEndpoints, failedEndpoint, func(ep *endpoint.Endpoint) bool {
+		// 有标签请求：分两阶段尝试（只尝试格式兼容的端点）
+		s.logger.Debug(fmt.Sprintf("Tagged request failed on %s, trying fallback with tags: %v and format: %s",
+			failedEndpoint.Name, requestTags, requestFormat))
+
+		// Phase 1：尝试有标签且匹配的端点（格式兼容）
+		taggedEndpoints := s.filterAndSortEndpoints(compatibleEndpoints, failedEndpoint, func(ep *endpoint.Endpoint) bool {
 			return len(ep.Tags) > 0 && s.endpointContainsAllTags(ep.Tags, requestTags)
 		})
-		
+
 		if len(taggedEndpoints) > 0 {
-			s.logger.Debug(fmt.Sprintf("Phase 1: Trying %d tagged endpoints", len(taggedEndpoints)))
+			s.logger.Debug(fmt.Sprintf("Phase 1: Trying %d tagged endpoints (format-compatible)", len(taggedEndpoints)))
 			success, attemptedCount := s.tryEndpointList(c, taggedEndpoints, path, requestBody, requestID, startTime, taggedRequest, "Phase 1", totalAttempted+1)
 			if success {
 				return
 			}
 			totalAttempted += attemptedCount
 		}
-		
-		// Phase 2：尝试万用端点
-		universalEndpoints := s.filterAndSortEndpoints(allEndpoints, failedEndpoint, func(ep *endpoint.Endpoint) bool {
+
+		// Phase 2：尝试万用端点（格式兼容）
+		universalEndpoints := s.filterAndSortEndpoints(compatibleEndpoints, failedEndpoint, func(ep *endpoint.Endpoint) bool {
 			return len(ep.Tags) == 0
 		})
 		
@@ -434,15 +494,15 @@ func (s *Server) fallbackToOtherEndpoints(c *gin.Context, path string, requestBo
 		s.sendProxyError(c, http.StatusBadGateway, "all_endpoints_failed", errorMsg, requestID)
 		
 	} else {
-		// 无标签请求：只尝试万用端点
-		s.logger.Debug("Untagged request failed, trying universal endpoints only")
-		
-		universalEndpoints := s.filterAndSortEndpoints(allEndpoints, failedEndpoint, func(ep *endpoint.Endpoint) bool {
+		// 无标签请求：只尝试万用端点（格式兼容）
+		s.logger.Debug(fmt.Sprintf("Untagged request failed, trying universal endpoints only (format: %s)", requestFormat))
+
+		universalEndpoints := s.filterAndSortEndpoints(compatibleEndpoints, failedEndpoint, func(ep *endpoint.Endpoint) bool {
 			return len(ep.Tags) == 0
 		})
-		
+
 		if len(universalEndpoints) == 0 {
-			s.logger.Error("No universal endpoints available for untagged request", nil)
+			s.logger.Error(fmt.Sprintf("No format-compatible universal endpoints available for untagged request (format: %s)", requestFormat), nil)
 			errorMsg := s.generateDetailedEndpointUnavailableMessage(requestID, requestTags)
 			s.sendProxyError(c, http.StatusBadGateway, "no_universal_endpoints", errorMsg, requestID)
 			return

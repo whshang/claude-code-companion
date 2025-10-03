@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"gopkg.in/yaml.v3"
-	"claude-code-companion/internal/i18n"
+	"claude-code-codex-companion/internal/i18n"
 )
 
 func LoadConfig(filename string) (*Config, error) {
@@ -114,7 +114,7 @@ func generateDefaultConfig(filename string) error {
 	}
 
 	// 添加注释说明
-	header := i18n.T("default_config_header", `# Claude Code Companion 默认配置文件
+	header := i18n.T("default_config_header", `# Claude Code Codex Companion 默认配置文件
 # 这是自动生成的默认配置文件，请根据需要修改各项配置
 # 注意：endpoints 中的示例端点默认为禁用状态，需要配置正确的 API 密钥并启用
 

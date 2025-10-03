@@ -1,80 +1,76 @@
-# Binaries for programs and plugins
+# Binaries
+claude-code-codex-companion
+claude-code-codex-companion.exe
 *.exe
-*.exe~
 *.dll
 *.so
 *.dylib
-claude-code-companion
-claude-code-companion-*
-
-# Test binary, built with `go test -c`
 *.test
-
-# Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
-
-# Go workspace file
+# Go build cache
 go.work
+go.work.sum
 
-# IDE files
+# Logs and databases
+logs/
+*.log
+*.db
+*.db-shm
+*.db-wal
+
+# Configuration with secrets
+config.yaml
+config-*.yaml
+!config.yaml.example
+
+# Test and debug files
+test_*.sh
+test_*.py
+debug/
+*.tmp
+
+# IDE and editor files
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-
-# OS generated files
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
 
-# Log files and directories
-logs/
-*.log
+# AI tools configuration and generated files
+.claude/
+.crush/
+CLAUDE.md
+AGENTS.md
 
-# Configuration files with sensitive data
-config.yaml
-config.yml
-config.json
+# Temporary and backup files
+*.backup
+*.bak
+*.old
+cleanup.sh
 
-# Temporary files
-*.tmp
-*.temp
+# Archives and packages
+archive-*/
+*.tar.gz
+*.zip
 
-# Build artifacts
-dist/
-build/
+# Temporary documentation (keep only README in root)
+CHANGELOG.md
 
-# Environment files
+# Local development
 .env
 .env.local
-.env.*.local
+*.pem
+*.key
+*.crt
 
-# Coverage reports
-coverage.txt
-coverage.html
-coverage.out
-
-# Documentation generation
-docs/build/
-
-# Node modules (if any frontend tooling is added)
-node_modules/
-
-# Backup files
-*.bak
-*.backup
-
-# Database files
-*.db
-*.sqlite
-*.sqlite3
-
-.claude/*
+# Test and local config files
+test-*.sh
+test-*.yaml
+test-*.py
+test_*.sh
+test_*.py
+config.yaml
+config-*.yaml
+claude-code-codex-companion-darwin-arm64

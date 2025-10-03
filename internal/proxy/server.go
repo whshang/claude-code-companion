@@ -4,17 +4,17 @@ import (
 	"fmt"
 	"sync"
 
-	"claude-code-companion/internal/config"
-	"claude-code-companion/internal/conversion"
-	"claude-code-companion/internal/endpoint"
-	"claude-code-companion/internal/health"
-	"claude-code-companion/internal/i18n"
-	"claude-code-companion/internal/logger"
-	"claude-code-companion/internal/modelrewrite"
-	"claude-code-companion/internal/statistics"
-	"claude-code-companion/internal/tagging"
-	"claude-code-companion/internal/validator"
-	"claude-code-companion/internal/web"
+	"claude-code-codex-companion/internal/config"
+	"claude-code-codex-companion/internal/conversion"
+	"claude-code-codex-companion/internal/endpoint"
+	"claude-code-codex-companion/internal/health"
+	"claude-code-codex-companion/internal/i18n"
+	"claude-code-codex-companion/internal/logger"
+	"claude-code-codex-companion/internal/modelrewrite"
+	"claude-code-codex-companion/internal/statistics"
+	"claude-code-codex-companion/internal/tagging"
+	"claude-code-codex-companion/internal/validator"
+	"claude-code-codex-companion/internal/web"
 
 	"github.com/gin-gonic/gin"
 )
@@ -130,6 +130,10 @@ func (s *Server) setupRoutes() {
 	{
 		apiGroup.Any("/*path", s.handleProxy)
 	}
+
+	// 支持 Codex 的 /responses 路径
+	s.router.Any("/responses", s.loggingMiddleware(), s.handleProxy)
+	s.router.Any("/chat/completions", s.loggingMiddleware(), s.handleProxy)
 }
 
 func (s *Server) Start() error {

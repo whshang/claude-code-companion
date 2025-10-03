@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"claude-code-companion/internal/interfaces"
+	"claude-code-codex-companion/internal/interfaces"
 )
 
 // wildcardMatch 统一的通配符匹配函数，支持更直观的通配符语义

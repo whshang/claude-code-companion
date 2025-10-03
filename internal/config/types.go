@@ -41,6 +41,12 @@ type EndpointConfig struct {
 	RateLimitReset      *int64            `yaml:"rate_limit_reset,omitempty" json:"rate_limit_reset,omitempty"`       // Anthropic-Ratelimit-Unified-Reset
 	RateLimitStatus     *string           `yaml:"rate_limit_status,omitempty" json:"rate_limit_status,omitempty"`     // Anthropic-Ratelimit-Unified-Status
 	EnhancedProtection  bool              `yaml:"enhanced_protection,omitempty" json:"enhanced_protection,omitempty"` // 官方帐号增强保护：allowed_warning时即禁用端点
+	SSEConfig         *SSEConfig        `yaml:"sse_config,omitempty" json:"sse_config,omitempty"` // SSE行为配置
+}
+
+// 新增：SSE行为配置结构
+type SSEConfig struct {
+	RequireDoneMarker bool `yaml:"require_done_marker" json:"require_done_marker"` // 是否要求[DONE]标记
 }
 
 // 新增：代理配置结构

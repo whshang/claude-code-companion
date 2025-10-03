@@ -3,7 +3,7 @@ package modelrewrite
 import (
 	"strings"
 	"testing"
-	"claude-code-companion/internal/logger"
+	"claude-code-codex-companion/internal/logger"
 )
 
 func TestSSEResponseRewrite(t *testing.T) {

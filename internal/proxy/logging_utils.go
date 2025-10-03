@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"time"
 
-	"claude-code-companion/internal/endpoint"
-	"claude-code-companion/internal/tagging"
-	"claude-code-companion/internal/utils"
+	"claude-code-codex-companion/internal/endpoint"
+	"claude-code-codex-companion/internal/tagging"
+	"claude-code-codex-companion/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -75,6 +75,17 @@ func (s *Server) sendFailureResponse(c *gin.Context, requestID string, startTime
 	
 	requestLog.Tags = requestTags
 	requestLog.Error = errorMsg
+
+	// 设置格式检测信息（即使失败也要记录）
+	if formatDetection, exists := c.Get("format_detection"); exists {
+		if detection, ok := formatDetection.(*utils.FormatDetectionResult); ok && detection != nil {
+			requestLog.ClientType = string(detection.ClientType)
+			requestLog.RequestFormat = string(detection.Format)
+			requestLog.DetectionConfidence = detection.Confidence
+			requestLog.DetectedBy = detection.DetectedBy
+		}
+	}
+
 	s.logger.LogRequest(requestLog)
 	s.sendProxyError(c, http.StatusBadGateway, errorType, requestLog.Error, requestID)
 }
@@ -93,6 +104,16 @@ func (s *Server) logSimpleRequest(requestID, endpoint, method, path string, orig
 			if info, ok := thinkingInfo.(*utils.ThinkingInfo); ok && info != nil {
 				requestLog.ThinkingEnabled = info.Enabled
 				requestLog.ThinkingBudgetTokens = info.BudgetTokens
+			}
+		}
+
+		// 设置格式检测信息
+		if formatDetection, exists := c.Get("format_detection"); exists {
+			if detection, ok := formatDetection.(*utils.FormatDetectionResult); ok && detection != nil {
+				requestLog.ClientType = string(detection.ClientType)
+				requestLog.RequestFormat = string(detection.Format)
+				requestLog.DetectionConfidence = detection.Confidence
+				requestLog.DetectedBy = detection.DetectedBy
 			}
 		}
 	}

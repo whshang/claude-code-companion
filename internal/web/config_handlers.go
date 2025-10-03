@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"net/url"
 
-	"claude-code-companion/internal/config"
-	"claude-code-companion/internal/modelrewrite"
-	"claude-code-companion/internal/utils"
+	"claude-code-codex-companion/internal/config"
+	"claude-code-codex-companion/internal/modelrewrite"
+	"claude-code-codex-companion/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )

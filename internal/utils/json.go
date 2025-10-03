@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"strings"
 	
-	commonjson "claude-code-companion/internal/common/json"
+	commonjson "claude-code-codex-companion/internal/common/json"
 )
 
 // ExtractStringField extracts a string field from JSON data

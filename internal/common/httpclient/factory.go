@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"claude-code-companion/internal/config"
+	"claude-code-codex-companion/internal/config"
 )
 
 // ClientType 定义客户端类型

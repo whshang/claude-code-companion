@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	_ "modernc.org/sqlite"
-	"claude-code-companion/internal/i18n"
+	"claude-code-codex-companion/internal/i18n"
 )
 
 // ValidateGORMCompatibility 验证GORM与modernc.org/sqlite的兼容性

@@ -1,6 +1,6 @@
 .PHONY: build clean test run dev windows-amd64 linux-amd64 linux-arm64 darwin-amd64 darwin-arm64 all
 
-BINARY_NAME=claude-code-companion
+BINARY_NAME=claude-code-codex-companion
 
 # Generate version in format: YYYYMMDD-<short-hash>[-dirty][-release]
 define GET_VERSION
@@ -99,11 +99,11 @@ lint:
 help:
 	@echo "Available targets:"
 	@echo "  build          - Build binary for current platform"
-	@echo "  windows-amd64  - Cross-compile for Windows x64"
-	@echo "  linux-amd64    - Cross-compile for Linux x64"
-	@echo "  linux-arm64    - Cross-compile for Linux ARM64"
-	@echo "  darwin-amd64   - Cross-compile for macOS Intel"
-	@echo "  darwin-arm64   - Cross-compile for macOS Apple Silicon"
+	@echo "  windows-amd64  - Cross-compile for Windows x64 (Claude Code Codex Companion)"
+	@echo "  linux-amd64    - Cross-compile for Linux x64 (Claude Code Codex Companion)"
+	@echo "  linux-arm64    - Cross-compile for Linux ARM64 (Claude Code Codex Companion)"
+	@echo "  darwin-amd64   - Cross-compile for macOS Intel (Claude Code Codex Companion)"
+	@echo "  darwin-arm64   - Cross-compile for macOS Apple Silicon (Claude Code Codex Companion)"
 	@echo "  all            - Cross-compile for all platforms"
 	@echo "  clean          - Remove build artifacts"
 	@echo "  test           - Run tests"

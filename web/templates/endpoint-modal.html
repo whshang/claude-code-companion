@@ -103,11 +103,11 @@
                                 </div>
                                 <div class="col-6 d-none-custom" id="path-prefix-group">
                                     <label for="endpoint-path-prefix" class="form-label">
-                                        <i class="fas fa-route form-label-icon"></i><span data-t="path_prefix">路径前缀</span> <span class="text-danger">*</span>
+                                        <i class="fas fa-route form-label-icon"></i><span data-t="path_prefix">路径前缀</span>
                                     </label>
-                                    <input type="text" class="form-control" id="endpoint-path-prefix" 
-                                           placeholder="/v1/chat/completions">
-                                    <small class="form-text text-muted" data-t="openai_compatible_api_path">OpenAI兼容端点的API路径</small>
+                                    <input type="text" class="form-control" id="endpoint-path-prefix"
+                                           placeholder="/v1/chat/completions (留空表示原生支持 /responses)">
+                                    <small class="form-text text-muted" data-t="openai_compatible_api_path">OpenAI兼容端点的API路径，留空表示原生支持 /responses</small>
                                 </div>
                             </div>
 
@@ -309,9 +309,12 @@
                                         <small class="text-muted">
                                             <strong data-t="preset_model_patterns">预设模型模式：</strong><br>
                                             <span data-t="haiku_series_pattern">• Haiku系列: claude-*haiku*</span><br>
-                                            <span data-t="sonnet_series_pattern">• Sonnet系列: claude-*sonnet*</span><br>  
+                                            <span data-t="sonnet_series_pattern">• Sonnet系列: claude-*sonnet*</span><br>
                                             <span data-t="opus_series_pattern">• Opus系列: claude-*opus*</span><br>
-                                            <span data-t="all_claude_pattern">• 所有Claude: claude-*</span>
+                                            <span data-t="all_claude_pattern">• 所有Claude: claude-*</span><br>
+                                            <span data-t="gpt5_pattern">• GPT-5: gpt-5</span><br>
+                                            <span data-t="gpt5_codex_pattern">• GPT-5 Codex: gpt-5-codex</span><br>
+                                            <span data-t="all_gpt_pattern">• 所有GPT: gpt-*</span>
                                         </small>
                                     </div>
                                 </div>

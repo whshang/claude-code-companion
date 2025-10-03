@@ -5,13 +5,13 @@ import (
 	"net/http"
 	"strings"
 
-	"claude-code-companion/internal/config"
-	"claude-code-companion/internal/endpoint"
-	"claude-code-companion/internal/i18n"
-	"claude-code-companion/internal/logger"
-	"claude-code-companion/internal/security"
-	"claude-code-companion/internal/tagging"
-	"claude-code-companion/internal/webres"
+	"claude-code-codex-companion/internal/config"
+	"claude-code-codex-companion/internal/endpoint"
+	"claude-code-codex-companion/internal/i18n"
+	"claude-code-codex-companion/internal/logger"
+	"claude-code-codex-companion/internal/security"
+	"claude-code-codex-companion/internal/tagging"
+	"claude-code-codex-companion/internal/webres"
 
 	"github.com/gin-gonic/gin"
 )

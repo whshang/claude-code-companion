@@ -3,8 +3,8 @@ package conversion
 import (
 	"testing"
 
-	"claude-code-companion/internal/config"
-	"claude-code-companion/internal/logger"
+	"claude-code-codex-companion/internal/config"
+	"claude-code-codex-companion/internal/logger"
 )
 
 // Helper function to create a test logger

@@ -80,14 +80,8 @@ func matchesAllTags(endpointTags, requiredTags []string) bool {
 // FilterEndpointsForTags 过滤出满足标签要求的 endpoint
 func FilterEndpointsForTags(endpoints []EndpointSorter, requiredTags []string) []EndpointSorter {
 	if len(requiredTags) == 0 {
-		// 如果没有标签要求，只返回无标签的endpoint
-		filtered := make([]EndpointSorter, 0)
-		for _, ep := range endpoints {
-			if len(ep.GetTags()) == 0 {
-				filtered = append(filtered, ep)
-			}
-		}
-		return filtered
+		// 如果没有标签要求，返回所有端点
+		return endpoints
 	}
 	
 	filtered := make([]EndpointSorter, 0)

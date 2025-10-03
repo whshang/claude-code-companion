@@ -95,12 +95,13 @@ function togglePathPrefixField() {
     const endpointType = document.getElementById('endpoint-type').value;
     const pathPrefixGroup = document.getElementById('path-prefix-group');
     const pathPrefixInput = document.getElementById('endpoint-path-prefix');
-    
+
     if (endpointType === 'openai') {
         StyleUtils.show(pathPrefixGroup);
-        pathPrefixInput.required = true;
+        // OpenAI端点的path_prefix允许为空（表示原生支持/responses）
+        pathPrefixInput.required = false;
         if (!pathPrefixInput.value) {
-            pathPrefixInput.value = '/v1/chat/completions'; // Default value
+            pathPrefixInput.placeholder = '/v1/chat/completions (留空表示原生支持 /responses)';
         }
     } else {
         StyleUtils.hide(pathPrefixGroup);

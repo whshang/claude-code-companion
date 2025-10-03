@@ -46,6 +46,9 @@ function addRewriteRule(sourcePattern = '', targetModel = '') {
                 <option value="claude-*sonnet*">Sonnet 系列</option>
                 <option value="claude-*opus*">Opus 系列</option>
                 <option value="claude-*">所有 Claude</option>
+                <option value="gpt-5">GPT-5</option>
+                <option value="gpt-5-codex">GPT-5 Codex</option>
+                <option value="gpt-*">所有 GPT</option>
                 <option value="custom">${customWildcardText}</option>
             </select>
             <input type="text" class="form-control mt-1 source-pattern-input" 
